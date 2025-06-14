@@ -1,0 +1,62 @@
+# macOS system files
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Flutter/Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+/build/
+**/ios/Flutter/.last_build_id
+**/doc/api/
+*.symbols
+*.map.json
+flutter_plugins*
+Generated.xcconfig
+Podfile.lock
+
+# Android
+/android/app/debug/
+/android/app/profile/
+/android/app/release/
+/android/app/src/main/java/io/flutter/plugins/
+/android/app/src/main/kotlin/io/flutter/plugins/
+/android/gradle-wrapper.jar
+/local.properties
+
+# iOS
+/ios/Flutter/flutter_export_environment.sh
+/ios/.generated/
+/ios/Pods/
+/ios/Runner.xcworkspace/contents.xcworkspacedata
+
+# IDE
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+
+# Build
+*.log
+*.pyc
+*.class
+*.lock
+*.swp
+*.swo
+*.symbols
+
+# Debug
+profile.d
+migrations/
+*.stackdump
+
+# VS Code (uncomment if needed)
+# .vscode/*
+# !.vscode/settings.json
+# !.vscode/tasks.json
+# !.vscode/launch.json
+# !.vscode/extensions.json
