@@ -15,6 +15,13 @@ class Validators {
     return null;
   }
 
+  static String? validateOtp(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Please enter the OTP';
+    if (!RegExp(r'^\d{6}$').hasMatch(value)) return 'OTP must be exactly 6 digits';
+    return null;
+  }
+
+
 
   static String? validateEmail(String? value) {
     if (value == null || value.trim().isEmpty) return 'Please enter your email';

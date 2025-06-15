@@ -35,6 +35,47 @@ class AuthApiCalls extends BaseApiService {
     debugPrint('🔽 Final Parsed Response => $result');
     return result;
   }
+  Future<Map<String, dynamic>> GetOtp(String email) async {
+    debugPrint('🛰️ Hitting URL: ${AuthUrl.getotp.url}');
+    final result = await makeRequest<Map<String, dynamic>>(
+      url: AuthUrl.getotp.url,
+      method: AuthUrl.getotp.method,
+      body: {
+        "email":email,
+      },
+      responseParser: (data) => data as Map<String, dynamic>,
+    );
+    debugPrint('🔽 Final Parsed Response => $result');
+    return result;
+  }
+  Future<Map<String, dynamic>> VerifyOTP(String email,int forget_password_otp) async {
+    debugPrint('🛰️ Hitting URL: ${AuthUrl.verifyotp.url}');
+    final result = await makeRequest<Map<String, dynamic>>(
+      url: AuthUrl.verifyotp.url,
+      method: AuthUrl.verifyotp.method,
+      body: {
+        "email":email,
+        "forget_password_otp":forget_password_otp
+      },
+      responseParser: (data) => data as Map<String, dynamic>,
+    );
+    debugPrint('🔽 Final Parsed Response => $result');
+    return result;
+  }
+  Future<Map<String, dynamic>> UpdatePassword(String email,String password) async {
+    debugPrint('🛰️ Hitting URL: ${AuthUrl.Updatepassword.url}');
+    final result = await makeRequest<Map<String, dynamic>>(
+      url: AuthUrl.Updatepassword.url,
+      method: AuthUrl.Updatepassword.method,
+      body: {
+        "email":email,
+        "password":password
+      },
+      responseParser: (data) => data as Map<String, dynamic>,
+    );
+    debugPrint('🔽 Final Parsed Response => $result');
+    return result;
+  }
 
 
 

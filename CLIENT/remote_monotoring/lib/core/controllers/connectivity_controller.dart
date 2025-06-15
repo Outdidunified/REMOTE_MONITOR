@@ -136,7 +136,7 @@ class ConnectivityController extends GetxController {
         debugPrint('Connection restored. Returning to: $lastRoute');
 
         // Navigate back to the previous route
-        Get.offNamed(lastRoute!);
+        Get.offAllNamed(lastRoute!);
 
         // Show a success toast
         DesktopAlerts.showToast(

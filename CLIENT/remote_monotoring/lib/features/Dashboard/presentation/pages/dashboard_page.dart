@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:remote_monotoring/core/controllers/navigation_controller.dart';
 import 'package:remote_monotoring/core/controllers/session_controller.dart';
 import 'package:remote_monotoring/features/Dashboard/presentation/controllers/Dashboard_controller.dart';
+import 'package:remote_monotoring/utils/Layouts/app_layout.dart';
 import 'package:remote_monotoring/utils/Layouts/responsive_layout.dart';
 import 'package:remote_monotoring/utils/theme/app_theme.dart';
 import 'package:remote_monotoring/utils/widgets/common_widgets.dart';
@@ -10,57 +12,34 @@ class DashboardPage extends StatelessWidget {
   DashboardPage({super.key});
 
   final DashboardController controller = Get.put(DashboardController());
+  final NavigationController navigationController =
+      Get.find<NavigationController>();
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Obx(() => Row(
+    return AppLayout(
+      title: 'Dashboard',
+      subtitle: 'Overview of your system monitoring',
+      selectedIndex: navigationController.selectedIndex.value,
+      onMenuItemTapped: navigationController.onMenuItemTapped,
+      actions: Row(
         children: [
-          if (!ResponsiveLayout.isMobile(context))
-            _buildDesktopSidebar(context),
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppTheme.backgroundDark, AppTheme.backgroundMedium],
-                ),
-              ),
-              child: CommonWidgets.circuitBackground(
-                context: context,
-                opacity: 0.05,
-                child: Column(
-                  children: [
-                    if (ResponsiveLayout.isMobile(context))
-                      AppBar(
-                        title: const Text('REMOTE MONITORING'),
-                        backgroundColor: AppTheme.primaryDark,
-                        leading: IconButton(
-                          icon: const Icon(Icons.menu),
-                          onPressed: controller.toggleDrawer,
-                        ),
-                        actions: [
-                          IconButton(
-                            onPressed: controller.logout,
-                            icon: const Icon(Icons.logout),
-                          ),
-                        ],
-                      ),
-                    Expanded(
-                      child: Padding(
-                        padding: ResponsiveLayout.responsivePadding(context),
-                        child: _buildDashboardContent(context),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          CommonWidgets.secondaryButton(
+            context: context,
+            text: 'Refresh',
+            icon: Icons.refresh,
+            onPressed: () {},
+          ),
+          SizedBox(width: ResponsiveLayout.spacing(context)),
+          CommonWidgets.primaryButton(
+            context: context,
+            text: 'Add Device',
+            icon: Icons.add,
+            onPressed: () {},
           ),
         ],
-      )),
-      drawer: ResponsiveLayout.isMobile(context) ? _buildMobileDrawer(context) : null,
+      ),
+      child: _buildDashboardContent(context),
     );
   }
 
@@ -79,9 +58,7 @@ class DashboardPage extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(vertical: 24),
-            decoration: const BoxDecoration(
-              gradient: AppTheme.primaryGradient,
-            ),
+            decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
             child: Center(
               child: Column(
                 children: [
@@ -126,8 +103,9 @@ class DashboardPage extends StatelessWidget {
                     sessionController.username.value.isNotEmpty
                         ? sessionController.username.value[0].toUpperCase()
                         : 'U',
-                    style: AppTheme.bodyMedium(context)
-                        .copyWith(fontWeight: FontWeight.bold),
+                    style: AppTheme.bodyMedium(
+                      context,
+                    ).copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -139,8 +117,9 @@ class DashboardPage extends StatelessWidget {
                         sessionController.username.value.isNotEmpty
                             ? sessionController.username.value
                             : 'User',
-                        style: AppTheme.bodyMedium(context)
-                            .copyWith(fontWeight: FontWeight.bold),
+                        style: AppTheme.bodyMedium(
+                          context,
+                        ).copyWith(fontWeight: FontWeight.bold),
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
@@ -199,9 +178,7 @@ class DashboardPage extends StatelessWidget {
       title: 'REMOTE MONITORING',
       header: Container(
         padding: const EdgeInsets.symmetric(vertical: 24),
-        decoration: const BoxDecoration(
-          gradient: AppTheme.primaryGradient,
-        ),
+        decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
         child: Center(
           child: Column(
             children: [
@@ -219,30 +196,28 @@ class DashboardPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              Text(
-                'REMOTE MONITORING',
-                style: AppTheme.headingSmall(context),
-              ),
+              Text('REMOTE MONITORING', style: AppTheme.headingSmall(context)),
             ],
           ),
         ),
       ),
-      items: controller.menuItems.asMap().entries.map((entry) {
-        final index = entry.key;
-        final item = entry.value;
-        final isSelected = controller.selectedIndex.value == index;
+      items:
+          controller.menuItems.asMap().entries.map((entry) {
+            final index = entry.key;
+            final item = entry.value;
+            final isSelected = controller.selectedIndex.value == index;
 
-        return CommonWidgets.drawerItem(
-          context: context,
-          title: item['title'],
-          icon: item['icon'],
-          isSelected: isSelected,
-          onTap: () {
-            controller.onMenuItemTapped(index);
-            Navigator.pop(context);
-          },
-        );
-      }).toList(),
+            return CommonWidgets.drawerItem(
+              context: context,
+              title: item['title'],
+              icon: item['icon'],
+              isSelected: isSelected,
+              onTap: () {
+                controller.onMenuItemTapped(index);
+                Navigator.pop(context);
+              },
+            );
+          }).toList(),
       footer: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -255,8 +230,9 @@ class DashboardPage extends StatelessWidget {
                   sessionController.username.value.isNotEmpty
                       ? sessionController.username.value[0].toUpperCase()
                       : 'U',
-                  style: AppTheme.bodyMedium(context)
-                      .copyWith(fontWeight: FontWeight.bold),
+                  style: AppTheme.bodyMedium(
+                    context,
+                  ).copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
               title: Text(
@@ -285,37 +261,14 @@ class DashboardPage extends StatelessWidget {
   }
 
   Widget _buildDashboardContent(BuildContext context) {
-    return Obx(() => Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommonWidgets.sectionHeader(
-          context: context,
-          title: controller.menuItems[controller.selectedIndex.value]['title'],
-          subtitle: 'Overview of your system monitoring',
-          trailing: Row(
-            children: [
-              CommonWidgets.secondaryButton(
-                context: context,
-                text: 'Refresh',
-                icon: Icons.refresh,
-                onPressed: () {},
-              ),
-              SizedBox(width: ResponsiveLayout.spacing(context)),
-              CommonWidgets.primaryButton(
-                context: context,
-                text: 'Add Device',
-                icon: Icons.add,
-                onPressed: () {},
-              ),
-            ],
-          ),
-        ),
-        SizedBox(height: ResponsiveLayout.spacing(context)),
         _buildStatusCards(context),
         SizedBox(height: ResponsiveLayout.spacing(context) * 2),
         Expanded(child: _buildChartsAndTables(context)),
       ],
-    ));
+    );
   }
 
   Widget _buildStatusCards(BuildContext context) {
@@ -451,296 +404,310 @@ class DashboardPage extends StatelessWidget {
 
   Widget _buildChartsAndTables(BuildContext context) {
     return ResponsiveLayout.isDesktop(context) ||
-        ResponsiveLayout.isLargeDesktop(context)
+            ResponsiveLayout.isLargeDesktop(context)
         ? Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 2,
-          child: CommonWidgets.card(
-            context: context,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CommonWidgets.sectionHeader(
-                  context: context,
-                  title: 'System Performance',
-                  subtitle: 'Last 24 hours',
-                  trailing: DropdownButton<String>(
-                    value: 'Today',
-                    items: ['Today', 'Yesterday', 'Last Week', 'Last Month']
-                        .map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          value,
-                          style: AppTheme.bodySmall(context),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (_) {},
-                    style: AppTheme.bodySmall(context),
-                    dropdownColor: AppTheme.backgroundLight,
-                    underline: Container(),
-                  ),
-                ),
-                Expanded(
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.backgroundLight.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.bar_chart,
-                            size: 48,
-                            color: AppTheme.accentColor.withOpacity(0.7),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Performance Chart',
-                            style: AppTheme.bodyMedium(context),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'CPU, Memory, and Network usage over time',
-                            style: AppTheme.caption(context),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 2,
+              child: CommonWidgets.card(
+                context: context,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CommonWidgets.sectionHeader(
+                      context: context,
+                      title: 'System Performance',
+                      subtitle: 'Last 24 hours',
+                      trailing: DropdownButton<String>(
+                        value: 'Today',
+                        items:
+                            [
+                              'Today',
+                              'Yesterday',
+                              'Last Week',
+                              'Last Month',
+                            ].map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(
+                                  value,
+                                  style: AppTheme.bodySmall(context),
+                                ),
+                              );
+                            }).toList(),
+                        onChanged: (_) {},
+                        style: AppTheme.bodySmall(context),
+                        dropdownColor: AppTheme.backgroundLight,
+                        underline: Container(),
                       ),
                     ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SizedBox(width: ResponsiveLayout.spacing(context)),
-        Expanded(
-          child: CommonWidgets.card(
-            context: context,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CommonWidgets.sectionHeader(
-                  context: context,
-                  title: 'Recent Alerts',
-                  subtitle: 'Last 5 alerts',
-                  trailing: TextButton(
-                    onPressed: () {},
-                    child: const Text('View All'),
-                  ),
-                ),
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: 5,
-                    separatorBuilder: (context, index) =>
-                    const Divider(color: AppTheme.backgroundLight),
-                    itemBuilder: (context, index) {
-                      final alertTypes = [
-                        {
-                          'icon': Icons.warning,
-                          'color': AppTheme.warning,
-                          'text': 'Warning',
-                        },
-                        {
-                          'icon': Icons.error,
-                          'color': AppTheme.error,
-                          'text': 'Critical',
-                        },
-                        {
-                          'icon': Icons.info,
-                          'color': AppTheme.info,
-                          'text': 'Info',
-                        },
-                      ];
-
-                      final alertType = alertTypes[index % alertTypes.length];
-                      final color = alertType['color'] as Color;
-
-                      return ListTile(
-                        leading: Container(
-                          width: 40,
-                          height: 40,
+                    Expanded(
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: color.withOpacity(0.1),
+                            color: AppTheme.backgroundLight.withOpacity(0.3),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Icon(
-                            alertType['icon'] as IconData,
-                            color: color,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.bar_chart,
+                                size: 48,
+                                color: AppTheme.accentColor.withOpacity(0.7),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Performance Chart',
+                                style: AppTheme.bodyMedium(context),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'CPU, Memory, and Network usage over time',
+                                style: AppTheme.caption(context),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ),
                         ),
-                        title: Text(
-                          'Device ${index + 1} - ${alertType['text']}',
-                          style: AppTheme.bodyMedium(context),
-                        ),
-                        subtitle: Text(
-                          'Alert triggered at ${DateTime.now().subtract(Duration(minutes: index * 15)).hour}:${DateTime.now().subtract(Duration(minutes: index * 15)).minute.toString().padLeft(2, '0')}',
-                          style: AppTheme.caption(context),
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.more_vert),
-                          onPressed: () {},
-                        ),
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ],
-    )
+            SizedBox(width: ResponsiveLayout.spacing(context)),
+            Expanded(
+              child: CommonWidgets.card(
+                context: context,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CommonWidgets.sectionHeader(
+                      context: context,
+                      title: 'Recent Alerts',
+                      subtitle: 'Last 5 alerts',
+                      trailing: TextButton(
+                        onPressed: () {},
+                        child: const Text('View All'),
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: 5,
+                        separatorBuilder:
+                            (context, index) =>
+                                const Divider(color: AppTheme.backgroundLight),
+                        itemBuilder: (context, index) {
+                          final alertTypes = [
+                            {
+                              'icon': Icons.warning,
+                              'color': AppTheme.warning,
+                              'text': 'Warning',
+                            },
+                            {
+                              'icon': Icons.error,
+                              'color': AppTheme.error,
+                              'text': 'Critical',
+                            },
+                            {
+                              'icon': Icons.info,
+                              'color': AppTheme.info,
+                              'text': 'Info',
+                            },
+                          ];
+
+                          final alertType =
+                              alertTypes[index % alertTypes.length];
+                          final color = alertType['color'] as Color;
+
+                          return ListTile(
+                            leading: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                alertType['icon'] as IconData,
+                                color: color,
+                              ),
+                            ),
+                            title: Text(
+                              'Device ${index + 1} - ${alertType['text']}',
+                              style: AppTheme.bodyMedium(context),
+                            ),
+                            subtitle: Text(
+                              'Alert triggered at ${DateTime.now().subtract(Duration(minutes: index * 15)).hour}:${DateTime.now().subtract(Duration(minutes: index * 15)).minute.toString().padLeft(2, '0')}',
+                              style: AppTheme.caption(context),
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.more_vert),
+                              onPressed: () {},
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        )
         : Column(
-      children: [
-        Expanded(
-          child: CommonWidgets.card(
-            context: context,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CommonWidgets.sectionHeader(
-                  context: context,
-                  title: 'System Performance',
-                  subtitle: 'Last 24 hours',
-                  trailing: DropdownButton<String>(
-                    value: 'Today',
-                    items: ['Today', 'Yesterday', 'Last Week', 'Last Month']
-                        .map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          value,
-                          style: AppTheme.bodySmall(context),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (_) {},
-                    style: AppTheme.bodySmall(context),
-                    dropdownColor: AppTheme.backgroundLight,
-                    underline: Container(),
-                  ),
-                ),
-                Expanded(
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.backgroundLight.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.bar_chart,
-                            size: 48,
-                            color: AppTheme.accentColor.withOpacity(0.7),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Performance Chart',
-                            style: AppTheme.bodyMedium(context),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'CPU, Memory, and Network usage over time',
-                            style: AppTheme.caption(context),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+          children: [
+            Expanded(
+              child: CommonWidgets.card(
+                context: context,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CommonWidgets.sectionHeader(
+                      context: context,
+                      title: 'System Performance',
+                      subtitle: 'Last 24 hours',
+                      trailing: DropdownButton<String>(
+                        value: 'Today',
+                        items:
+                            [
+                              'Today',
+                              'Yesterday',
+                              'Last Week',
+                              'Last Month',
+                            ].map((String value) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(
+                                  value,
+                                  style: AppTheme.bodySmall(context),
+                                ),
+                              );
+                            }).toList(),
+                        onChanged: (_) {},
+                        style: AppTheme.bodySmall(context),
+                        dropdownColor: AppTheme.backgroundLight,
+                        underline: Container(),
                       ),
                     ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SizedBox(height: ResponsiveLayout.spacing(context)),
-        Expanded(
-          child: CommonWidgets.card(
-            context: context,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CommonWidgets.sectionHeader(
-                  context: context,
-                  title: 'Recent Alerts',
-                  subtitle: 'Last 5 alerts',
-                  trailing: TextButton(
-                    onPressed: () {},
-                    child: const Text('View All'),
-                  ),
-                ),
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: 5,
-                    separatorBuilder: (context, index) =>
-                    const Divider(color: AppTheme.backgroundLight),
-                    itemBuilder: (context, index) {
-                      final alertTypes = [
-                        {
-                          'icon': Icons.warning,
-                          'color': AppTheme.warning,
-                          'text': 'Warning',
-                        },
-                        {
-                          'icon': Icons.error,
-                          'color': AppTheme.error,
-                          'text': 'Critical',
-                        },
-                        {
-                          'icon': Icons.info,
-                          'color': AppTheme.info,
-                          'text': 'Info',
-                        },
-                      ];
-
-                      final alertType = alertTypes[index % alertTypes.length];
-                      final color = alertType['color'] as Color;
-
-                      return ListTile(
-                        leading: Container(
-                          width: 40,
-                          height: 40,
+                    Expanded(
+                      child: Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: color.withOpacity(0.1),
+                            color: AppTheme.backgroundLight.withOpacity(0.3),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Icon(
-                            alertType['icon'] as IconData,
-                            color: color,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.bar_chart,
+                                size: 48,
+                                color: AppTheme.accentColor.withOpacity(0.7),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Performance Chart',
+                                style: AppTheme.bodyMedium(context),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'CPU, Memory, and Network usage over time',
+                                style: AppTheme.caption(context),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ),
                         ),
-                        title: Text(
-                          'Device ${index + 1} - ${alertType['text']}',
-                          style: AppTheme.bodyMedium(context),
-                        ),
-                        subtitle: Text(
-                          'Alert triggered at ${DateTime.now().subtract(Duration(minutes: index * 15)).hour}:${DateTime.now().subtract(Duration(minutes: index * 15)).minute.toString().padLeft(2, '0')}',
-                          style: AppTheme.caption(context),
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.more_vert),
-                          onPressed: () {},
-                        ),
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      ],
-    );
+            SizedBox(height: ResponsiveLayout.spacing(context)),
+            Expanded(
+              child: CommonWidgets.card(
+                context: context,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CommonWidgets.sectionHeader(
+                      context: context,
+                      title: 'Recent Alerts',
+                      subtitle: 'Last 5 alerts',
+                      trailing: TextButton(
+                        onPressed: () {},
+                        child: const Text('View All'),
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: 5,
+                        separatorBuilder:
+                            (context, index) =>
+                                const Divider(color: AppTheme.backgroundLight),
+                        itemBuilder: (context, index) {
+                          final alertTypes = [
+                            {
+                              'icon': Icons.warning,
+                              'color': AppTheme.warning,
+                              'text': 'Warning',
+                            },
+                            {
+                              'icon': Icons.error,
+                              'color': AppTheme.error,
+                              'text': 'Critical',
+                            },
+                            {
+                              'icon': Icons.info,
+                              'color': AppTheme.info,
+                              'text': 'Info',
+                            },
+                          ];
+
+                          final alertType =
+                              alertTypes[index % alertTypes.length];
+                          final color = alertType['color'] as Color;
+
+                          return ListTile(
+                            leading: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: color.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                alertType['icon'] as IconData,
+                                color: color,
+                              ),
+                            ),
+                            title: Text(
+                              'Device ${index + 1} - ${alertType['text']}',
+                              style: AppTheme.bodyMedium(context),
+                            ),
+                            subtitle: Text(
+                              'Alert triggered at ${DateTime.now().subtract(Duration(minutes: index * 15)).hour}:${DateTime.now().subtract(Duration(minutes: index * 15)).minute.toString().padLeft(2, '0')}',
+                              style: AppTheme.caption(context),
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.more_vert),
+                              onPressed: () {},
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
   }
 }

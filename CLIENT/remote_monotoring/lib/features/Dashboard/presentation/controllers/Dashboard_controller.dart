@@ -11,10 +11,9 @@ class DashboardController extends GetxController {
 
   final List<Map<String, dynamic>> menuItems = [
     {'title': 'Dashboard', 'icon': Icons.dashboard},
-    {'title': 'Devices', 'icon': Icons.devices},
-    {'title': 'Monitoring', 'icon': Icons.monitor},
-    {'title': 'Alerts', 'icon': Icons.notifications},
-    {'title': 'Reports', 'icon': Icons.bar_chart},
+    {'title': ' Manage Devices', 'icon': Icons.devices},
+    {'title': 'History', 'icon': Icons.history},
+    {'title': 'Analytics', 'icon': Icons.bar_chart},
     {'title': 'Settings', 'icon': Icons.settings},
   ];
 
@@ -31,6 +30,25 @@ class DashboardController extends GetxController {
 
   void onMenuItemTapped(int index) {
     selectedIndex.value = index;
+
+    // Navigate to the corresponding page based on the selected index
+    switch (index) {
+      case 0: // Dashboard
+        // Already on dashboard, no navigation needed
+        break;
+      case 1: // Manage Devices
+        Get.toNamed('/manageDevices');
+        break;
+      case 2: // History
+        Get.toNamed('/history');
+        break;
+      case 3: // Analytics
+        Get.toNamed('/analytics');
+        break;
+      case 4: // Settings
+        Get.toNamed('/settings');
+        break;
+    }
   }
 
   void toggleDrawer() {
@@ -51,19 +69,20 @@ class DashboardController extends GetxController {
             onPressed: () => Get.back(),
             child: Text(
               'Cancel',
-              style: AppTheme.bodyMedium(Get.context!)
-                  .copyWith(color: AppTheme.textSecondary),
+              style: AppTheme.bodyMedium(
+                Get.context!,
+              ).copyWith(color: AppTheme.textSecondary),
             ),
           ),
           ElevatedButton(
             onPressed: () async {
               Get.back(); // Close the dialog
               await _sessionController.clearSession(); // Clear session
-              Get.offAllNamed('/login'); // Navigate to login page and clear all routes
+              Get.offAllNamed(
+                '/login',
+              ); // Navigate to login page and clear all routes
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.error,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
             child: Text('Logout', style: AppTheme.bodyMedium(Get.context!)),
           ),
         ],

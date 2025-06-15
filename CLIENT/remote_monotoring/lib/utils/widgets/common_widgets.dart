@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:remote_monotoring/utils/Layouts/responsive_layout.dart';
 import 'package:remote_monotoring/utils/theme/app_theme.dart';
+import 'package:pinput/pinput.dart'; // Add this import at the top
+
 
 /// A collection of common widgets used throughout the application
 class CommonWidgets {
@@ -38,6 +41,68 @@ class CommonWidgets {
       child: child,
     );
   }
+
+  static Widget pinInputField({
+    required BuildContext context,
+    required int length,
+    required TextEditingController controller,
+    EdgeInsetsGeometry? padding,
+    String? Function(String?)? validator, // <-- Accept validator
+  }) {
+    return Padding(
+      padding: padding ?? EdgeInsets.zero,
+      child: FormField<String>(
+        validator: (_) => validator?.call(controller.text),
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+        builder: (formFieldState) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Pinput(
+                length: length,
+                controller: controller,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                androidSmsAutofillMethod: AndroidSmsAutofillMethod.smsRetrieverApi,
+
+                defaultPinTheme: PinTheme(
+                  width: 50,
+                  height: 56,
+                  textStyle: const TextStyle(
+                      fontSize: 20, color: Colors.white, fontWeight: FontWeight.w600),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                focusedPinTheme: PinTheme(
+                  width: 50,
+                  height: 56,
+                  textStyle: const TextStyle(
+                      fontSize: 20, color: Colors.white, fontWeight: FontWeight.w600),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.green),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onChanged: (_) => formFieldState.didChange(controller.text),
+              ),
+              if (formFieldState.hasError)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, left: 4),
+                  child: Text(
+                    formFieldState.errorText!,
+                    style: TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+
 
   static Widget logoCircle(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -193,6 +258,9 @@ class CommonWidgets {
     VoidCallback? onSuffixIconPressed,
     int? maxLines = 1,
     int? maxLength,
+    bool readOnly = false,                      // 🔒 NEW: readOnly support
+    Color? fillColor,                           // 🎨 NEW: fill color customization
+    TextStyle? style,                           // ✍️ NEW: override text style
   }) {
     return TextFormField(
       controller: controller,
@@ -201,19 +269,22 @@ class CommonWidgets {
       validator: validator,
       maxLines: maxLines,
       maxLength: maxLength,
-      style: AppTheme.bodyMedium(context),
+      readOnly: readOnly,                       // ← Apply readOnly
+      style: style ?? AppTheme.bodyMedium(context),
       decoration: AppTheme.inputDecoration(label, hint).copyWith(
         prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
-        suffixIcon:
-            suffixIcon != null
-                ? IconButton(
-                  icon: Icon(suffixIcon),
-                  onPressed: onSuffixIconPressed,
-                )
-                : null,
+        suffixIcon: suffixIcon != null
+            ? IconButton(
+          icon: Icon(suffixIcon),
+          onPressed: onSuffixIconPressed,
+        )
+            : null,
+        filled: fillColor != null,
+        fillColor: fillColor,                   // ← Apply fillColor
       ),
     );
   }
+
 
   /// Creates a responsive dropdown with consistent styling
   static Widget dropdown<T>({

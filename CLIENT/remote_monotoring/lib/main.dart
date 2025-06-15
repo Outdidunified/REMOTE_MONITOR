@@ -4,13 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:remote_monotoring/core/pages/no_internet_screen.dart';
+import 'package:remote_monotoring/features/auth/domain/repositories/auth_repository.dart' show AuthRepository;
 import 'package:remote_monotoring/features/auth/presentation/pages/forgotpassword_page.dart';
 import 'package:remote_monotoring/features/auth/presentation/pages/login_page.dart';
 import 'package:remote_monotoring/features/auth/presentation/pages/register_page.dart';
+import 'package:remote_monotoring/features/Dashboard/presentation/pages/dashboard_page.dart';
+import 'package:remote_monotoring/features/ManageDevice/pages/ManageDevicePage.dart';
+import 'package:remote_monotoring/features/History/pages/HistoryPage.dart';
+import 'package:remote_monotoring/features/Analytics/pages/Analyticspage.dart';
+import 'package:remote_monotoring/features/Settings/pages/SettingsPage.dart';
 import 'package:remote_monotoring/utils/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:remote_monotoring/core/controllers/session_controller.dart';
 import 'package:remote_monotoring/core/controllers/connectivity_controller.dart';
+import 'package:remote_monotoring/core/controllers/navigation_controller.dart';
 import 'package:remote_monotoring/core/pages/splash_screen.dart';
 
 void main() async {
@@ -30,10 +37,13 @@ void main() async {
   // Initialize controllers
   final sessionController = SessionController(prefs: prefs);
   final connectivityController = ConnectivityController();
+  final navigationController = NavigationController();
 
   // Register controllers with GetX
   Get.put(sessionController);
   Get.put(connectivityController);
+  Get.put(navigationController);
+  Get.put(AuthRepository());
 
   // Allow self-signed certificates for development
   HttpOverrides.global = MyHttpOverrides();
@@ -86,6 +96,32 @@ class RemoteMonitoring extends StatelessWidget {
         GetPage(
           name: '/forgotpassword',
           page: () => ForgotpasswordPage(),
+          transition: Transition.fadeIn,
+        ),
+        // Dashboard and feature pages
+        GetPage(
+          name: '/dashboard',
+          page: () => DashboardPage(),
+          transition: Transition.fadeIn,
+        ),
+        GetPage(
+          name: '/manageDevices',
+          page: () => Managedevicepage(),
+          transition: Transition.fadeIn,
+        ),
+        GetPage(
+          name: '/history',
+          page: () => Historypage(),
+          transition: Transition.fadeIn,
+        ),
+        GetPage(
+          name: '/analytics',
+          page: () => Analyticspage(),
+          transition: Transition.fadeIn,
+        ),
+        GetPage(
+          name: '/settings',
+          page: () => Settingspage(),
           transition: Transition.fadeIn,
         ),
       ],

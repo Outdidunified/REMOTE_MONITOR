@@ -37,9 +37,9 @@ abstract class BaseApiService {
 
   // Handle HTTP response and parse body
   Future<T> handleResponse<T>(
-    http.Response response, {
-    T Function(dynamic)? parser,
-  }) async {
+      http.Response response, {
+        T Function(dynamic)? parser,
+      }) async {
     try {
       final responseBody = jsonDecode(response.body);
 
@@ -52,7 +52,7 @@ abstract class BaseApiService {
         throw HttpException(response.statusCode, tokenMessage);
       }
 
-      // ✅ Success case (status 200–299) or specific 400 case with error: true
+      // ✅ Success case
       if ((response.statusCode >= 200 && response.statusCode < 300) ||
           (response.statusCode == 400 &&
               responseBody is Map<String, dynamic> &&
@@ -60,7 +60,7 @@ abstract class BaseApiService {
         return parser != null ? parser(responseBody) : responseBody as T;
       }
 
-      // ❗ Error case: Prioritize backend message
+      // ❗ Error case: Use backend message if available
       String errorMessage;
       if (responseBody is Map<String, dynamic> &&
           responseBody['message'] != null &&
@@ -96,12 +96,23 @@ abstract class BaseApiService {
 
       debugPrint('API Error: $errorMessage (Status: ${response.statusCode})');
       throw HttpException(response.statusCode, errorMessage);
+    } on FormatException catch (e) {
+      // JSON decoding failed
+      debugPrint('JSON Format Error: $e');
+      throw HttpException(
+        500,
+        '⚠️ Invalid response format. Our team has been notified.',
+      );
     } catch (e) {
-      final errorMessage = _getDefaultErrorMessage(response.statusCode);
+      // Any other unhandled exception
       debugPrint('API Exception: $e (Status: ${response.statusCode})');
-      throw HttpException(response.statusCode, errorMessage);
+      throw HttpException(
+        response.statusCode,
+        _getDefaultErrorMessage(response.statusCode),
+      );
     }
   }
+
 
   // Handle token expiration with dialog and redirect
   void _handleTokenExpired(String message) {

@@ -57,3 +57,81 @@ class LoginResponse {
     };
   }
 }
+
+class GetOtpResponse {
+  final bool error; // Updated to match the response structure
+  final String message; // Message field
+
+  GetOtpResponse({
+    required this.error,
+    required this.message,
+  });
+
+  // Factory constructor for creating an instance from JSON
+  factory GetOtpResponse.fromJson(Map<String, dynamic> json) {
+    return GetOtpResponse(
+      error: json['error'] as bool, // Parse 'error' field
+      message: json['message'] as String, // Parse 'message' field
+    );
+  }
+
+  // Method to convert the instance back to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'error': error,
+      'message': message,
+    };
+  }
+}
+
+class VerifyotpResponse {
+  final bool error; // Updated to match the response structure
+  final String message; // Message field
+
+  VerifyotpResponse({
+    required this.error,
+    required this.message,
+  });
+
+  // Factory constructor for creating an instance from JSON
+  factory VerifyotpResponse.fromJson(Map<String, dynamic> json) {
+    return VerifyotpResponse(
+      error: json['error'] as bool, // Parse 'error' field
+      message: json['message'] as String, // Parse 'message' field
+    );
+  }
+
+  // Method to convert the instance back to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'error': error,
+      'message': message,
+    };
+  }
+}
+
+class UpdatePasswordResponse {
+  final bool error; // Updated to match the response structure
+  final String message; // Message field
+
+  UpdatePasswordResponse({
+    required this.error,
+    required this.message,
+  });
+
+  // Factory constructor for creating an instance from JSON
+  factory UpdatePasswordResponse.fromJson(Map<String, dynamic> json) {
+    return UpdatePasswordResponse(
+      error: json['error'] as bool, // Parse 'error' field
+      message: json['message'] as String, // Parse 'message' field
+    );
+  }
+
+  // Method to convert the instance back to JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'error': error,
+      'message': message,
+    };
+  }
+}

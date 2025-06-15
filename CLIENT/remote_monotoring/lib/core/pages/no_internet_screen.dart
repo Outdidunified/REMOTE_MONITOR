@@ -63,7 +63,15 @@ class _NoInternetScreenState extends State<NoInternetScreen>
     if (controller.isConnected.value) {
       _statusMessage.value = 'Connection restored! Redirecting...';
       await Future.delayed(const Duration(milliseconds: 500));
-      controller.refreshConnectionAndNavigate();
+
+      // Use the controller's method to navigate back to the previous route
+      if (controller.lastRoute != null &&
+          controller.lastRoute != '/noInternet') {
+        Get.offAllNamed(controller.lastRoute!);
+      } else {
+        // Fallback to dashboard if no previous route
+        Get.offAllNamed('/dashboard');
+      }
     } else {
       _statusMessage.value =
           'Still no connection. Please check your network settings.';

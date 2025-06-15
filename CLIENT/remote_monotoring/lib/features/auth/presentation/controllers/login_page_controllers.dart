@@ -21,14 +21,12 @@ class LoginPageController extends BaseController {
 
   final RxBool rememberMe = false.obs;
 
-
   // Animation controllers
   final RxDouble formOpacity = 1.0.obs;
 
   // Dependencies
   final _sessionController = Get.find<SessionController>();
   final AuthRepository _repository = AuthRepository();
-
 
   @override
   void onInit() {
@@ -66,93 +64,41 @@ class LoginPageController extends BaseController {
         passwordController.text.trim(),
       );
 
-      // Debug the raw response structure
-      print('Response Structure:');
-      print('- error: ${response.error}');
-      print('- message: ${response.message}');
-      print('- token: ${response.token}');
-      print('- data: ${response.data}');
+      // Always show the backend message (success or failure)
+      errorMessage.value = response.message;
+      isSuccess.value = !response.error;
 
-      if (response.error) {
-        errorMessage.value = response.message ?? 'Login failed';
-        isSuccess.value = false;
-      } else {
-        // Safely extract user data
-        final userData = response.data ?? {};
+      if (response.error) return;
 
-        // Debug user data structure
-        print('User Data Structure: $userData');
-        print('User Data Keys: ${userData.keys}');
+      final userData = response.data ?? {};
 
-        // Extract values with proper parsing
-        final userId = int.tryParse(userData['user_id']?.toString() ?? '0') ?? 0;
-        final emailId = userData['email']?.toString() ?? emailController.text.trim();
-        final token = response.token ?? '';
-        final username = userData['name']?.toString() ?? '';
-        final roleId = int.tryParse(userData['role_id']?.toString() ?? '0') ?? 0;
-        final roleName = userData['role_name']?.toString() ?? '';
-        final phone = userData['phone']?.toString() ?? '';
+      await _sessionController.saveSession(
+        userId: int.tryParse(userData['user_id']?.toString() ?? '0') ?? 0,
+        emailId: userData['email']?.toString() ?? emailController.text.trim(),
+        token: response.token ?? '',
+        username: userData['name']?.toString() ?? '',
+        roleId: int.tryParse(userData['role_id']?.toString() ?? '0') ?? 0,
+        roleName: userData['role_name']?.toString() ?? '',
+        phone: userData['phone']?.toString() ?? '',
+      );
 
-        // Print extracted values
-        print('====== Extracted Values ======');
-        print('User ID: $userId (from ${userData['user_id']})');
-        print('Email: $emailId (from ${userData['email']})');
-        print('Token: ${token.isNotEmpty ? '${token.substring(0, 15)}...' : 'Empty'}');
-        print('Username: $username (from ${userData['name']})');
-        print('Role ID: $roleId (from ${userData['role_id']})');
-        print('Role Name: $roleName (from ${userData['role_name']})');
-        print('Phone: $phone (from ${userData['phone']})');
+      // Optional delay for UX feedback
+      await Future.delayed(const Duration(seconds: 1));
 
-        // Save to session
-        await _sessionController.saveSession(
-          userId: userId,
-          emailId: emailId,
-          token: token,
-          username: username,
-          roleId: roleId,
-          roleName: roleName,
-          phone: phone,
-        );
+      // Navigate to dashboard
+      Get.offAllNamed('/dashboard');
 
-        errorMessage.value = '${response.message ?? 'Login successful'}! Welcome back';
-        isSuccess.value = true;
-
-        await Future.delayed(const Duration(seconds: 3));
-        Get.offAllNamed('/dashboard');
-      }
     } catch (e) {
-      errorMessage.value = e is HttpException ? e.message : 'Unable to reach server. Please try again later.';
-      isSuccess.value = false;
-      print('Login Error: $e');
-      if (e is TypeError) {
-        print('Type error details: ${e.stackTrace}');
+      if (e is HttpException) {
+        errorMessage.value = e.message; // ✅ Use the backend-provided message here
+      } else {
+        errorMessage.value = 'Unable to reach server. Please try again later.';
       }
-    } finally {
-      isLoading.value = false;
+      isSuccess.value = false;
+      debugPrint('Login Error: ${errorMessage.value}');
     }
-  }
 
-  Widget _buildValueRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '$label ',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              softWrap: true,
-            ),
-          ),
-        ],
-      ),
-    );
   }
-
 
 
 
