@@ -207,7 +207,11 @@ class ForgotpasswordPage extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 GestureDetector(
-                                  onTap: () => Get.toNamed('/login'),
+                                  onTap: () {
+                                    Get.toNamed(
+                                      '/LoginPage',
+                                    ); // or Get.to(() => RegisterPage()) if you're not using named routes
+                                  },
                                   child: Text(
                                     "<< Go back to LoginPage",
                                     style: AppTheme.bodySmall(context).copyWith(

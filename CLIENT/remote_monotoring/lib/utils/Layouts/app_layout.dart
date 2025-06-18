@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:remote_monotoring/core/controllers/navigation_controller.dart';
 import 'package:remote_monotoring/core/controllers/session_controller.dart';
 import 'package:remote_monotoring/utils/Layouts/responsive_layout.dart';
 import 'package:remote_monotoring/utils/theme/app_theme.dart';
@@ -130,10 +131,10 @@ class AppLayout extends StatelessWidget {
                       shape: BoxShape.circle,
                       gradient: AppTheme.accentRadialGradient,
                     ),
-                    child: const Icon(
-                      Icons.desktop_windows,
-                      size: 30,
-                      color: Colors.white,
+                    child: Image.asset(
+                      'assets/icons/virtual-desktop.png',
+                      width: 20,
+                      color: Colors.white, // tint image if it's monochrome
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -250,10 +251,10 @@ class AppLayout extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: AppTheme.accentRadialGradient,
                 ),
-                child: const Icon(
-                  Icons.desktop_windows,
-                  size: 30,
-                  color: Colors.white,
+                child: Image.asset(
+                  'assets/icons/virtual-desktop.png',
+                  width: 30,
+                  color: Colors.white, // tint image if it's monochrome
                 ),
               ),
               const SizedBox(height: 12),
@@ -345,9 +346,21 @@ class AppLayout extends StatelessWidget {
           ElevatedButton(
             onPressed: () async {
               Get.back(); // Close the dialog
-              await sessionController.clearSession(); // Clear session
+
+              // Clear session
+              await sessionController.clearSession();
+
+              // Reset navigation controller
+              final navController = Get.find<NavigationController>();
+              navController.selectedIndex.value = 0;
+
+              // Delete and recreate controllers to avoid disposed controller issues
+              Get.delete<NavigationController>(force: false);
+              Get.put(NavigationController());
+
+              // Navigate to login
               Get.offAllNamed(
-                '/login',
+                '/LoginPage',
               ); // Navigate to login page and clear all routes
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),

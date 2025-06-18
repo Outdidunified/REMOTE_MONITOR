@@ -2,17 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:remote_monotoring/core/controllers/navigation_controller.dart';
 import 'package:remote_monotoring/core/controllers/session_controller.dart';
+import 'package:remote_monotoring/features/Settings/presentation/controllers/settings_controllers.dart';
 import 'package:remote_monotoring/utils/Layouts/app_layout.dart';
 import 'package:remote_monotoring/utils/Layouts/responsive_layout.dart';
 import 'package:remote_monotoring/utils/theme/app_theme.dart';
+import 'package:remote_monotoring/utils/validators.dart';
 import 'package:remote_monotoring/utils/widgets/common_widgets.dart';
 import 'package:remote_monotoring/utils/widgets/custom_alert.dart';
 
 class Settingspage extends StatelessWidget {
   Settingspage({super.key});
 
-  final NavigationController navigationController =
-      Get.find<NavigationController>();
+  final SettingsController settingsController = Get.put(SettingsController());
+  final NavigationController navigationController = Get.find<NavigationController>();
   final SessionController sessionController = Get.find<SessionController>();
 
   @override
@@ -20,20 +22,55 @@ class Settingspage extends StatelessWidget {
     return AppLayout(
       title: 'Settings',
       subtitle: 'Configure your account and application settings',
-      selectedIndex: 4, // Index for Settings
+      selectedIndex: 4,
       onMenuItemTapped: navigationController.onMenuItemTapped,
-      actions: CommonWidgets.primaryButton(
-        context: context,
-        text: 'Save Changes',
-        icon: Icons.save,
-        onPressed: () {
-          // Save settings logic
-          CustomAlert.success(
-            message: 'Settings saved successfully!',
-            onConfirm: () {},
-          );
-        },
-      ),
+      actions: Obx(() {
+        final isEditing = settingsController.isEditing.value;
+        final isDirty = settingsController.isDirty.value;
+
+        void onSavePressed() {
+          if (!settingsController.formKey.currentState!.validate()) {
+            return; // ❌ Don't proceed if validation fails
+          }
+
+          final name = settingsController.usernameController.text.trim();
+          final phoneText = settingsController.phoneController.text.trim();
+          final password = settingsController.passwordController.text.trim();
+
+          final phoneInt = int.tryParse(phoneText);
+          if (phoneInt == null) {
+            CustomAlert.error(message: 'Phone number must be numeric.');
+            return;
+          }
+
+          settingsController.updateProfile(
+            name: name,
+            phone: phoneInt,
+            password: password.isNotEmpty ? password : null,
+          ).then((_) {
+            if (settingsController.errorMessage.isEmpty) {
+              CustomAlert.success(
+                message: 'Profile updated successfully!',
+                onConfirm: () {},
+              );
+              settingsController.isEditing.value = false;
+              settingsController.isDirty.value = false;
+              settingsController.populateOriginalData();
+            } else {
+              CustomAlert.error(
+                message: settingsController.errorMessage.value,
+              );
+            }
+          });
+        }
+
+        return CommonWidgets.primaryButton(
+          context: context,
+          text: 'Save Changes',
+          icon: Icons.save,
+          onPressed: (isEditing && isDirty) ? onSavePressed : null, // ✅ Always non-null
+        );
+      }),
       child: _buildSettingsContent(context),
     );
   }
@@ -60,45 +97,6 @@ class Settingspage extends StatelessWidget {
               ),
             ),
             SizedBox(height: ResponsiveLayout.spacing(context) * 2),
-            _buildSectionHeader(context, 'Application Settings'),
-            _buildSettingsCard(
-              context,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSettingItem(
-                    context,
-                    title: 'Notifications',
-                    subtitle: 'Configure notification preferences',
-                    icon: Icons.notifications,
-                    onTap: () {
-                      // Navigate to notifications settings
-                    },
-                  ),
-                  CommonWidgets.divider(context),
-                  _buildSettingItem(
-                    context,
-                    title: 'Data Refresh Interval',
-                    subtitle: 'Set how often data is refreshed',
-                    icon: Icons.refresh,
-                    onTap: () {
-                      // Open refresh interval settings
-                    },
-                  ),
-                  CommonWidgets.divider(context),
-                  _buildSettingItem(
-                    context,
-                    title: 'Theme Settings',
-                    subtitle: 'Customize application appearance',
-                    icon: Icons.palette,
-                    onTap: () {
-                      // Open theme settings
-                    },
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: ResponsiveLayout.spacing(context) * 2),
             _buildSectionHeader(context, 'System Information'),
             _buildSettingsCard(
               context,
@@ -119,76 +117,111 @@ class Settingspage extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: Text(title, style: AppTheme.headingSmall(context)),
-    );
-  }
+  Widget _buildSectionHeader(BuildContext context, String title) =>
+      Padding(
+        padding: const EdgeInsets.only(bottom: 16.0),
+        child: Text(title, style: AppTheme.headingSmall(context)),
+      );
 
-  Widget _buildSettingsCard(BuildContext context, {required Widget child}) {
-    return CommonWidgets.card(context: context, child: child);
-  }
+  Widget _buildSettingsCard(BuildContext context, {required Widget child}) =>
+      CommonWidgets.card(context: context, child: child);
 
   Widget _buildProfileInfo(BuildContext context) {
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 40,
-          backgroundColor: AppTheme.primary,
-          child: Text(
-            sessionController.username.value.isNotEmpty
-                ? sessionController.username.value[0].toUpperCase()
-                : 'U',
-            style: AppTheme.headingMedium(context),
-          ),
-        ),
-        SizedBox(width: ResponsiveLayout.spacing(context)),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                sessionController.username.value,
-                style: AppTheme.headingSmall(context),
+    return Obx(() {
+      final profile = settingsController.userProfile.value?.data;
+
+      if (settingsController.isLoading.value) {
+        return Center(child: CircularProgressIndicator());
+      }
+
+      if (profile == null) {
+        return Center(child: Text('No profile data available.', style: AppTheme.bodyMedium(context)));
+      }
+
+      return Form( // ✅ Added Form
+        key: settingsController.formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 40,
+                  backgroundColor: AppTheme.primary,
+                  child: Text(
+                    (profile.name?.isNotEmpty ?? false) ? profile.name![0].toUpperCase() : 'U',
+                    style: AppTheme.headingMedium(context),
+                  ),
+                ),
+                SizedBox(width: ResponsiveLayout.spacing(context)),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(profile.name ?? '', style: AppTheme.headingSmall(context)),
+                      SizedBox(height: 4),
+                      Text(profile.email ?? '', style: AppTheme.bodyMedium(context)),
+                      SizedBox(height: 4),
+                      Text('Role: ${profile.roleName ?? 'N/A'}', style: AppTheme.bodySmall(context)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (settingsController.isEditing.value) ...[
+              SizedBox(height: ResponsiveLayout.spacing(context)),
+              CommonWidgets.textField(
+                context: context,
+                label: 'Username',
+                hint: 'Enter new username',
+                controller: settingsController.usernameController,
+                validator: Validators.validateUsername,
               ),
-              SizedBox(height: 4),
-              Text(
-                sessionController.emailId.value,
-                style: AppTheme.bodyMedium(context),
+              SizedBox(height: ResponsiveLayout.spacing(context) / 2),
+              CommonWidgets.textField(
+                context: context,
+                label: 'Password',
+                hint: 'Enter new password',
+                controller: settingsController.passwordController,
+                validator: Validators.validatePassword,
               ),
-              SizedBox(height: 4),
-              Text(
-                'Role: ${sessionController.roleName.value}',
-                style: AppTheme.bodySmall(context),
+              SizedBox(height: ResponsiveLayout.spacing(context) / 2),
+              CommonWidgets.textField(
+                context: context,
+                label: 'Phone Number',
+                hint: 'Enter phone number',
+                keyboardType: TextInputType.phone,
+                controller: settingsController.phoneController,
+                validator: Validators.validatePhone,
               ),
             ],
-          ),
+          ],
         ),
-      ],
-    );
+      );
+    });
   }
 
+
   Widget _buildAccountActions(BuildContext context) {
-    return Wrap(
+    return Obx(() => Wrap(
       spacing: ResponsiveLayout.spacing(context),
       runSpacing: ResponsiveLayout.spacing(context) / 2,
       children: [
         CommonWidgets.secondaryButton(
           context: context,
-          text: 'Edit Profile',
-          icon: Icons.edit,
+          text: settingsController.isEditing.value ? 'Cancel Edit' : 'Edit Profile',
+          icon: settingsController.isEditing.value ? Icons.close : Icons.edit,
           onPressed: () {
-            // Edit profile logic
+            if (!settingsController.isEditing.value) {
+              final profile = settingsController.userProfile.value?.data;
+              settingsController.usernameController.text = profile?.name ?? '';
+              settingsController.phoneController.text = profile?.phone ?? '';
+              settingsController.passwordController.text = profile?.password ?? '';
+              settingsController.isDirty.value = false;
+            }
+            settingsController.isEditing.toggle(); // ✅ Toggle editing
           },
-        ),
-        CommonWidgets.secondaryButton(
-          context: context,
-          text: 'Change Password',
-          icon: Icons.lock,
-          onPressed: () {
-            // Change password logic
-          },
+
         ),
         CommonWidgets.secondaryButton(
           context: context,
@@ -206,40 +239,13 @@ class Settingspage extends StatelessWidget {
           },
         ),
       ],
-    );
-  }
-
-  Widget _buildSettingItem(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: AppTheme.accentColor),
-      title: Text(
-        title,
-        style: AppTheme.bodyMedium(
-          context,
-        ).copyWith(fontWeight: FontWeight.bold),
-      ),
-      subtitle: Text(subtitle, style: AppTheme.bodySmall(context)),
-      trailing: const Icon(Icons.chevron_right, color: AppTheme.textMuted),
-      onTap: onTap,
-      contentPadding: EdgeInsets.zero,
-    );
+    ));
   }
 
   Widget _buildInfoItem(BuildContext context, String label, String value) {
     return Row(
       children: [
-        Text(
-          '$label: ',
-          style: AppTheme.bodyMedium(
-            context,
-          ).copyWith(fontWeight: FontWeight.bold),
-        ),
+        Text('$label: ', style: AppTheme.bodyMedium(context).copyWith(fontWeight: FontWeight.bold)),
         Text(value, style: AppTheme.bodyMedium(context)),
       ],
     );

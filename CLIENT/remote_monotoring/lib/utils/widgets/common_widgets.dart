@@ -148,7 +148,7 @@ class CommonWidgets {
   static Widget primaryButton({
     required BuildContext context,
     required String text,
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed, // Nullable to allow disabling
     bool isLoading = false,
     IconData? icon,
     double? width,

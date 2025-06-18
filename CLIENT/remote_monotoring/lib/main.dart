@@ -4,15 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:remote_monotoring/core/pages/no_internet_screen.dart';
-import 'package:remote_monotoring/features/auth/domain/repositories/auth_repository.dart' show AuthRepository;
+import 'package:remote_monotoring/features/Analytics/presentations/pages/Analyticspage.dart';
+import 'package:remote_monotoring/features/History/presentation/pages/HistoryPage.dart';
+import 'package:remote_monotoring/features/ManageDevice/presentation/pages/ManageDevicePage.dart';
+import 'package:remote_monotoring/features/Settings/presentation/pages/SettingsPage.dart';
+import 'package:remote_monotoring/features/auth/domain/repositories/auth_repository.dart';
 import 'package:remote_monotoring/features/auth/presentation/pages/forgotpassword_page.dart';
 import 'package:remote_monotoring/features/auth/presentation/pages/login_page.dart';
 import 'package:remote_monotoring/features/auth/presentation/pages/register_page.dart';
 import 'package:remote_monotoring/features/Dashboard/presentation/pages/dashboard_page.dart';
-import 'package:remote_monotoring/features/ManageDevice/pages/ManageDevicePage.dart';
-import 'package:remote_monotoring/features/History/pages/HistoryPage.dart';
-import 'package:remote_monotoring/features/Analytics/pages/Analyticspage.dart';
-import 'package:remote_monotoring/features/Settings/pages/SettingsPage.dart';
 import 'package:remote_monotoring/utils/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:remote_monotoring/core/controllers/session_controller.dart';
@@ -40,10 +40,10 @@ void main() async {
   final navigationController = NavigationController();
 
   // Register controllers with GetX
-  Get.put(sessionController);
-  Get.put(connectivityController);
+  Get.put(sessionController, permanent: true);
+  Get.put(connectivityController, permanent: true);
   Get.put(navigationController);
-  Get.put(AuthRepository());
+  Get.put(AuthRepository(), permanent: true);
 
   // Allow self-signed certificates for development
   HttpOverrides.global = MyHttpOverrides();

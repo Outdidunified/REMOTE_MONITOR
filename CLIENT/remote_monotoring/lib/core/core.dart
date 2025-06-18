@@ -2,11 +2,11 @@ import 'package:flutter/foundation.dart';
 
 class RemoteMonitoringCore {
   // Define base URLs for each environment
-  static const String prodBaseUrl = 'http://192.168.29.222:6767';
+  static const String prodBaseUrl = 'http://192.168.1.12:6767';
   // static const String prodBaseUrl = 'http://172.235.29.67:4444'; //uatprod
-  static const String devBaseUrl = 'http://192.168.29.222:6767';
+  static const String devBaseUrl = 'http://192.168.1.12:6767';
   // static const String testingBaseUrl = 'http://192.168.1.25:3003';
-  static const String testingBaseUrl = 'http://192.168.29.222:6767';
+  static const String testingBaseUrl = 'http://192.168.1.12:6767';
 
   // Define WebSocket URLs for each environment
   static const String prodWsUrl = 'ws://192.168.1.12:7002';

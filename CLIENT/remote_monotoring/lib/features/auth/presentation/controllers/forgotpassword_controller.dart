@@ -1,16 +1,28 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:remote_monotoring/core/controllers/base_controller.dart';
 import 'package:remote_monotoring/features/auth/domain/repositories/auth_repository.dart';
 
-class ForgotPasswordController extends GetxController {
+class ForgotPasswordController extends BaseController {
   final AuthRepository _authRepository = Get.find();
 
-  final formKey = GlobalKey<FormState>();
-  final emailController = TextEditingController();
-  final otpController = TextEditingController();
-  final newPasswordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
+  final formKey = GlobalKey<FormState>(debugLabel: 'forgotPasswordFormKey');
+  late final TextEditingController emailController;
+  late final TextEditingController otpController;
+  late final TextEditingController newPasswordController;
+  late final TextEditingController confirmPasswordController;
+
+  @override
+  void onInit() {
+    super.onInit();
+
+    // Register controllers for automatic disposal
+    emailController = registerTextController();
+    otpController = registerTextController();
+    newPasswordController = registerTextController();
+    confirmPasswordController = registerTextController();
+  }
 
   final isLoading = false.obs;
   final errorMessage = RxString('');
@@ -25,6 +37,12 @@ class ForgotPasswordController extends GetxController {
 
   Timer? _resendTimer;
   final isResendingOtp = false.obs;
+
+  // Register timer for disposal
+  void _registerTimer(Timer timer) {
+    _resendTimer = timer;
+    registerSubscription(timer); // This adds it to BaseController's disposables
+  }
 
   final isNewPasswordVisible = false.obs;
   final isConfirmPasswordVisible = false.obs;
@@ -58,12 +76,10 @@ class ForgotPasswordController extends GetxController {
 
       if (!response.error) {
         isOtpSent.value = true;
-        resendSuccessMessage.value = fromResend
-            ? response.message ?? 'OTP resent successfully!'
-            : '';
-        successMessage.value = fromResend
-            ? ''
-            : response.message ?? 'OTP sent successfully!';
+        resendSuccessMessage.value =
+            fromResend ? response.message ?? 'OTP resent successfully!' : '';
+        successMessage.value =
+            fromResend ? '' : response.message ?? 'OTP sent successfully!';
         startResendCountdown();
       } else {
         errorMessage.value = response.message ?? 'Failed to send OTP.';
@@ -80,8 +96,12 @@ class ForgotPasswordController extends GetxController {
   Future<void> verifyOtp() async {
     final otpText = otpController.text;
     if (otpText.length != 6) {
-      Get.snackbar("Invalid OTP", "Please enter a valid 6-digit OTP",
-          backgroundColor: Colors.orange, colorText: Colors.white);
+      Get.snackbar(
+        "Invalid OTP",
+        "Please enter a valid 6-digit OTP",
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
       return;
     }
 
@@ -103,8 +123,7 @@ class ForgotPasswordController extends GetxController {
 
       if (!response.error) {
         isOtpVerified.value = true;
-        successMessage.value =
-            response.message ?? 'OTP verified successfully!';
+        successMessage.value = response.message ?? 'OTP verified successfully!';
       } else {
         errorMessage.value = response.message ?? 'Invalid OTP.';
       }
@@ -135,18 +154,17 @@ class ForgotPasswordController extends GetxController {
       final response = await _authRepository.UpdatePassword(
         emailController.text.trim(),
         newPass,
-
       );
 
       if (!response.error) {
-        successMessage.value = response.message ?? 'Password updated successfully.';
+        successMessage.value =
+            response.message ?? 'Password updated successfully.';
 
         // Delay for 3 seconds before navigating to login page
         Future.delayed(const Duration(seconds: 3), () {
-          Get.offAllNamed('/login');
+          Get.offAllNamed('/LoginPage');
         });
-      }
-      else {
+      } else {
         errorMessage.value = response.message ?? 'Failed to update password.';
       }
     } catch (e) {
@@ -156,14 +174,16 @@ class ForgotPasswordController extends GetxController {
     }
   }
 
-
   // Timer countdown for resend OTP
   void startResendCountdown() {
     isResendAvailable.value = false;
     resendSecondsRemaining.value = 30;
 
+    // Cancel existing timer if any
     _resendTimer?.cancel();
-    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+
+    // Create and register new timer
+    final timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (resendSecondsRemaining.value > 1) {
         resendSecondsRemaining.value--;
       } else {
@@ -172,6 +192,9 @@ class ForgotPasswordController extends GetxController {
         timer.cancel();
       }
     });
+
+    // Register for proper disposal
+    _registerTimer(timer);
   }
 
   // Reset form to email input state
@@ -188,13 +211,7 @@ class ForgotPasswordController extends GetxController {
     isResendAvailable.value = false;
   }
 
-  @override
-  void onClose() {
-    emailController.dispose();
-    otpController.dispose();
-    newPasswordController.dispose();
-    confirmPasswordController.dispose();
-    _resendTimer?.cancel();
-    super.onClose();
-  }
+  // No need to override onClose() since BaseController handles all disposal
+  // The registerTextController() and registerSubscription() methods in BaseController
+  // already add the controllers and timer to a list that will be disposed automatically
 }

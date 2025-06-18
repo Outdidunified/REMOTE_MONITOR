@@ -36,6 +36,7 @@ dependencies:
   google_fonts: ^6.2.1
   animated_text_kit: ^4.2.2
   pinput: ^3.0.1
+  intl: ^0.19.0
 
 
   # The following adds the Cupertino Icons font to your application.

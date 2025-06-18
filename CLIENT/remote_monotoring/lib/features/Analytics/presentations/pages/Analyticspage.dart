@@ -241,7 +241,7 @@ class Analyticspage extends StatelessWidget {
         _buildOverviewCard(
           context: context,
           title: 'Network Traffic',
-          value: '${networkData.last['value'].toStringAsFixed(1)} MB/s',
+          value: '${networkData.last['value'].toStringAsFixed(1)}',
           icon: Icons.wifi,
           color: AppTheme.success,
           trend: '+0.8 MB/s',
@@ -492,7 +492,7 @@ class Analyticspage extends StatelessWidget {
                       style: AppTheme.headingSmall(context),
                     ),
                     Text(
-                      'Average: ${_calculateAverage(networkData).toStringAsFixed(1)} MB/s',
+                      'Average: ${_calculateAverage(networkData).toStringAsFixed(1)}',
                       style: AppTheme.bodySmall(context),
                     ),
                   ],

@@ -6,8 +6,8 @@ import 'package:remote_monotoring/features/auth/domain/repositories/auth_reposit
 import 'package:remote_monotoring/utils/exception/exception.dart';
 
 class LoginPageController extends BaseController {
-  // Form key for validation
-  final formKey = GlobalKey<FormState>();
+  // Form key for validation with unique debug label
+  final formKey = GlobalKey<FormState>(debugLabel: 'loginFormKey');
 
   // Text controllers
   late final TextEditingController emailController;
@@ -87,20 +87,17 @@ class LoginPageController extends BaseController {
 
       // Navigate to dashboard
       Get.offAllNamed('/dashboard');
-
     } catch (e) {
       if (e is HttpException) {
-        errorMessage.value = e.message; // ✅ Use the backend-provided message here
+        errorMessage.value =
+            e.message; // ✅ Use the backend-provided message here
       } else {
         errorMessage.value = 'Unable to reach server. Please try again later.';
       }
       isSuccess.value = false;
       debugPrint('Login Error: ${errorMessage.value}');
     }
-
   }
-
-
 
   /// Clear form fields
   void clearForm() {

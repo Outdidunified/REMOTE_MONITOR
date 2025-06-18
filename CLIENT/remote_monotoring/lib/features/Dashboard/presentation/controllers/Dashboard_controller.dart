@@ -1,17 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:remote_monotoring/core/controllers/session_controller.dart';
+import 'package:remote_monotoring/features/Dashboard/domain/models/dashboard_model.dart';
+import 'package:remote_monotoring/features/Dashboard/domain/repositories/dashboard_repository.dart';
 import 'package:remote_monotoring/utils/theme/app_theme.dart';
 
 class DashboardController extends GetxController {
   final _sessionController = Get.find<SessionController>();
+  final DashboardRepository _dashboardRepository = DashboardRepository();
+
+  final Rx<DashboarddataResponse?> dashboardData = Rx<DashboarddataResponse?>(
+    null,
+  );
+  final RxString errorMessage = ''.obs;
+
+  final RxBool isLoading = false.obs; // Add this line
 
   final RxInt selectedIndex = 0.obs;
   final RxBool isDrawerOpen = false.obs;
 
   final List<Map<String, dynamic>> menuItems = [
     {'title': 'Dashboard', 'icon': Icons.dashboard},
-    {'title': ' Manage Devices', 'icon': Icons.devices},
+    {'title': 'Manage Devices', 'icon': Icons.devices},
     {'title': 'History', 'icon': Icons.history},
     {'title': 'Analytics', 'icon': Icons.bar_chart},
     {'title': 'Settings', 'icon': Icons.settings},
@@ -20,32 +30,25 @@ class DashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    print('====== Session Controller Details ======');
-    print('Username: ${_sessionController.username.value}');
-    print('Email: ${_sessionController.emailId.value}');
-    print('Token: ${_sessionController.token.value}');
-    print('Is Logged In: ${_sessionController.isLoggedIn.value}');
-    print('=======================================');
+    fetchDashboardData(); // optional if you want to call on load
   }
 
   void onMenuItemTapped(int index) {
     selectedIndex.value = index;
 
-    // Navigate to the corresponding page based on the selected index
     switch (index) {
-      case 0: // Dashboard
-        // Already on dashboard, no navigation needed
+      case 0:
         break;
-      case 1: // Manage Devices
+      case 1:
         Get.toNamed('/manageDevices');
         break;
-      case 2: // History
+      case 2:
         Get.toNamed('/history');
         break;
-      case 3: // Analytics
+      case 3:
         Get.toNamed('/analytics');
         break;
-      case 4: // Settings
+      case 4:
         Get.toNamed('/settings');
         break;
     }
@@ -76,11 +79,9 @@ class DashboardController extends GetxController {
           ),
           ElevatedButton(
             onPressed: () async {
-              Get.back(); // Close the dialog
-              await _sessionController.clearSession(); // Clear session
-              Get.offAllNamed(
-                '/login',
-              ); // Navigate to login page and clear all routes
+              Get.back();
+              await _sessionController.clearSession();
+              Get.offAllNamed('/login');
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.error),
             child: Text('Logout', style: AppTheme.bodyMedium(Get.context!)),
@@ -88,5 +89,44 @@ class DashboardController extends GetxController {
         ],
       ),
     );
+  }
+
+  Future<void> fetchDashboardData() async {
+    try {
+      isLoading.value = true;
+      errorMessage.value = '';
+
+      final response = await _dashboardRepository.fetchDashboardDataWithToken(
+        _sessionController.token.value,
+      );
+
+      if (response.error) {
+        errorMessage.value = response.message;
+        Get.snackbar(
+          'Error',
+          errorMessage.value,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      } else {
+        dashboardData.value = response;
+        // Debug information
+        print('Dashboard data loaded successfully:');
+        print('Total devices: ${response.deviceListTotalCount}');
+        print('Active devices: ${response.deviceListActiveCount}');
+        print('Inactive devices: ${response.deviceListDeactiveCount}');
+      }
+    } catch (e) {
+      errorMessage.value = 'Failed to load dashboard data: ${e.toString()}';
+      print('Error loading dashboard data: $e');
+      Get.snackbar(
+        'Error',
+        errorMessage.value,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    } finally {
+      isLoading.value = false;
+    }
   }
 }
